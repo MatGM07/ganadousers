@@ -23,7 +23,7 @@ spring:
     host: smtp.gmail.com
     port: 587
     username: mattgameselpapu@gmail.com
-    password: soezdxnrbnbiuyhj # Debe ser app password, no la normal
+    password: elpepe # Debe ser app password, no la normal
     properties:
       mail:
         smtp:
@@ -36,5 +36,3 @@ logging:
     org.springframework: INFO
     com.tuempresa: DEBUG
 
-jwt:
-  secret: "M1C1aveDeJWT_ParaFirmarTokens_1234567890"

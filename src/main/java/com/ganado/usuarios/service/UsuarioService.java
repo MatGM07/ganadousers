@@ -40,7 +40,7 @@ public class UsuarioService {
             throw new RuntimeException("Contraseña incorrecta");
         }
 
-        return user; // en microservicios usas JWT fuera
+        return user;
     }
 
     public List<Usuario> findAll() {

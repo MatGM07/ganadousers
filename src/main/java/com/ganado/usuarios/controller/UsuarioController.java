@@ -2,7 +2,6 @@ package com.ganado.usuarios.controller;
 
 import com.ganado.usuarios.dto.*;
 import com.ganado.usuarios.model.Usuario;
-import com.ganado.usuarios.security.JwtService;
 import com.ganado.usuarios.service.UsuarioService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -17,7 +16,6 @@ import java.util.Map;
 public class UsuarioController {
 
     private final UsuarioService service;
-    private final JwtService jwtService;
 
 
     @PostMapping("/register")
@@ -25,16 +23,9 @@ public class UsuarioController {
         return service.register(dto);
     }
 
-    @PostMapping("/login")
-    public Map<String, Object> login(@RequestBody LoginDTO dto) {
-        Usuario user = service.login(dto);
-
-        String token = jwtService.createToken(user);  // 👈 genera JWT
-
-        return Map.of(
-                "token", token,
-                "user", user
-        );
+    @PostMapping("/validate")
+    public Usuario validate(@RequestBody LoginDTO dto) {
+        return service.login(dto); // SI password es correcta, retorna user; sino lanza error
     }
 
     @GetMapping
