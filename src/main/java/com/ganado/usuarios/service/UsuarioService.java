@@ -22,16 +22,19 @@ public class UsuarioService {
     private final JavaMailSender mailSender;
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 
+    // ✔ REGISTER (usa RegisterDTO)
     public Usuario register(RegisterDTO dto) {
         Usuario user = Usuario.builder()
                 .nombre(dto.getName())
                 .email(dto.getEmail())
                 .password(encoder.encode(dto.getPassword()))
+                .fechaCreacion(LocalDateTime.now())
                 .build();
-        user.setFechaCreacion(LocalDateTime.now());
+
         return repo.save(user);
     }
 
+    // ✔ LOGIN (validación)
     public Usuario login(LoginDTO dto) {
         Usuario user = repo.findByEmail(dto.getEmail())
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
@@ -43,10 +46,51 @@ public class UsuarioService {
         return user;
     }
 
+    // ✔ GET ALL
     public List<Usuario> findAll() {
         return repo.findAll();
     }
 
+    // ✔ GET BY ID
+    public Usuario findById(UUID id) {
+        return repo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+    }
+
+    public Usuario findByEmail(String email) {
+        return repo.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+    }
+
+    // ✔ UPDATE (usa UserRequestDTO)
+    public Usuario update(UUID id, UserRequestDTO dto) {
+        Usuario user = repo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        if (dto.getNombre() != null) {
+            user.setNombre(dto.getNombre());
+        }
+
+        if (dto.getEmail() != null) {
+            user.setEmail(dto.getEmail());
+        }
+
+        if (dto.getPassword() != null && !dto.getPassword().isBlank()) {
+            user.setPassword(encoder.encode(dto.getPassword()));
+        }
+
+        return repo.save(user);
+    }
+
+    // ✔ DELETE
+    public void delete(UUID id) {
+        if (!repo.existsById(id)) {
+            throw new RuntimeException("Usuario no encontrado");
+        }
+        repo.deleteById(id);
+    }
+
+    // ✔ REQUEST PASSWORD RESET
     public void requestPasswordReset(ResetPasswordDTO dto) {
         Usuario user = repo.findByEmail(dto.getEmail())
                 .orElseThrow(() -> new RuntimeException("No existe ese correo"));
@@ -59,25 +103,27 @@ public class UsuarioService {
         msg.setTo(user.getEmail());
         msg.setSubject("Código para cambio de contraseña");
         msg.setText("Tu código es: " + code);
+
         mailSender.send(msg);
     }
 
+    // ✔ CONFIRM RESET CODE
     public void confirmPasswordReset(ConfirmCodeDTO dto) {
-        Usuario user = repo.findByResetCode(dto.getCode())
+        repo.findByResetCode(dto.getCode())
                 .orElseThrow(() -> new RuntimeException("Código inválido"));
-
     }
 
-    public void newPassword(PasswordDTO dto){
+    // ✔ UPDATE PASSWORD
+    public void newPassword(PasswordDTO dto) {
         Usuario user = repo.findByEmail(dto.getEmail())
                 .orElseThrow(() -> new RuntimeException("Error al actualizar"));
 
         user.setPassword(encoder.encode(dto.getPassword()));
         user.setResetCode(null);
         repo.save(user);
-
     }
 
+    // ✔ EMAIL CHECK
     public boolean emailExists(String email) {
         return repo.existsByEmail(email);
     }

@@ -1,6 +1,7 @@
 package com.ganado.usuarios.controller;
 
 import com.ganado.usuarios.dto.*;
+import com.ganado.usuarios.mapper.UsuarioMapper;
 import com.ganado.usuarios.model.Usuario;
 import com.ganado.usuarios.service.UsuarioService;
 import lombok.RequiredArgsConstructor;
@@ -9,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/users")
@@ -29,8 +31,42 @@ public class UsuarioController {
     }
 
     @GetMapping
-    public List<Usuario> getAll() {
-        return service.findAll();
+    public ResponseEntity<List<UserResponseDTO>> getAll() {
+        List<Usuario> users = service.findAll();
+        List<UserResponseDTO> dtoList = users.stream()
+                .map(UsuarioMapper::toDTO)
+                .toList();
+        return ResponseEntity.ok(dtoList);
+    }
+
+    // GET BY ID
+    @GetMapping("/{id}")
+    public ResponseEntity<UserResponseDTO> getById(@PathVariable UUID id) {
+        Usuario user = service.findById(id);
+        return ResponseEntity.ok(UsuarioMapper.toDTO(user));
+    }
+
+    @GetMapping("/email/{email}")
+    public ResponseEntity<UserResponseDTO> getByEmail(@PathVariable String email) {
+        Usuario user = service.findByEmail(email);
+        return ResponseEntity.ok(UsuarioMapper.toDTO(user));
+    }
+
+    // UPDATE
+    @PutMapping("/{id}")
+    public ResponseEntity<UserResponseDTO> update(
+            @PathVariable UUID id,
+            @RequestBody UserRequestDTO dto
+    ) {
+        Usuario updated = service.update(id, dto);
+        return ResponseEntity.ok(UsuarioMapper.toDTO(updated));
+    }
+
+    // DELETE
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> delete(@PathVariable UUID id) {
+        service.delete(id);
+        return ResponseEntity.ok(Map.of("message", "Usuario eliminado"));
     }
 
     @PostMapping("/reset-password")
